@@ -142,7 +142,7 @@ export default function RegisterPage() {
                   Fazer login
                 </Link>
               </p>
-            </CardContent>
+            </CardFooter>
           </form>
         </Card>
       </div>
