@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ArrowLeft, Mic, Square, Volume2, Loader2, Send, AlertCircle, Sparkles } from 'lucide-react'
+import { ArrowLeft, Mic, Square, Volume2, Loader2, Send, AlertCircle, Sparkles, X } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -52,6 +52,8 @@ export default function PracticePage() {
   const [userCredits, setUserCredits] = useState<number | null>(null)
   const [conversationStarted, setConversationStarted] = useState(false)
   const [creditError, setCreditError] = useState(false)
+  const [speechSupported, setSpeechSupported] = useState(false)
+  const recognitionRef = useRef<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -70,6 +72,43 @@ export default function PracticePage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      if (SpeechRecognition) {
+        setSpeechSupported(true)
+        const recognition = new SpeechRecognition()
+        
+        const languageMap: Record<string, string> = {
+          'Francês': 'fr-FR',
+          'Inglês': 'en-US',
+          'Espanhol': 'es-ES',
+        }
+        recognition.lang = languageMap[scenario?.language] || 'en-US'
+        recognition.continuous = false
+        recognition.interimResults = false
+        recognition.maxAlternatives = 1
+
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript
+          setInput((prev) => prev + (prev ? ' ' : '') + transcript)
+          setIsRecording(false)
+        }
+
+        recognition.onerror = (event: any) => {
+          console.error('[v0] Speech recognition error:', event.error)
+          setIsRecording(false)
+        }
+
+        recognition.onend = () => {
+          setIsRecording(false)
+        }
+
+        recognitionRef.current = recognition
+      }
+    }
+  }, [scenario])
 
   const startConversation = async () => {
     if (conversationStarted) return
@@ -167,7 +206,15 @@ export default function PracticePage() {
   }
 
   const toggleRecording = () => {
-    setIsRecording(!isRecording)
+    if (!recognitionRef.current) return
+
+    if (isRecording) {
+      recognitionRef.current.stop()
+      setIsRecording(false)
+    } else {
+      setIsRecording(true)
+      recognitionRef.current.start()
+    }
   }
 
   if (!scenario) {
@@ -208,46 +255,42 @@ export default function PracticePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-zinc-900 flex flex-col">
+      <header className="bg-zinc-800 border-b border-zinc-700 sticky top-0 z-10">
+        <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <Link
               href="/scenarios"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="text-zinc-400 hover:text-zinc-200 transition-colors flex-shrink-0"
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Sair do Cenário</span>
+              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </Link>
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="font-semibold">{scenario.title}</h1>
-                <p className="text-xs text-muted-foreground">
-                  Praticando com {scenario.character}
-                </p>
-              </div>
-              <Badge variant="outline">{scenario.language}</Badge>
-              {userCredits !== null && (
-                <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2">
-                  <Sparkles className="h-3 w-3 text-primary" />
-                  <span className="text-xs font-medium">{userCredits} créditos</span>
-                </div>
-              )}
+            <div className="min-w-0 flex-1">
+              <h1 className="font-semibold text-sm sm:text-base text-white truncate">{scenario.title}</h1>
+              <p className="text-xs text-zinc-400 truncate">
+                {scenario.character} • {scenario.language}
+              </p>
             </div>
           </div>
+          {userCredits !== null && (
+            <div className="px-2 sm:px-3 py-1 rounded-full bg-primary/20 border border-primary/30 flex items-center gap-1.5 flex-shrink-0">
+              <Sparkles className="h-3 w-3 text-primary" />
+              <span className="text-xs font-medium text-primary">{userCredits}</span>
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-6 flex flex-col max-w-4xl">
+      <main className="flex-1 flex flex-col overflow-hidden">
         {!conversationStarted && messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center space-y-6 max-w-md">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
                 <Mic className="w-10 h-10 text-primary" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold mb-2">Pronto para começar?</h2>
-                <p className="text-muted-foreground mb-4">
+                <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Pronto para começar?</h2>
+                <p className="text-sm sm:text-base text-zinc-400 mb-4">
                   Esta conversa custará 1 crédito. Você terá uma sessão completa para praticar {scenario.language}.
                 </p>
               </div>
@@ -255,6 +298,7 @@ export default function PracticePage() {
                 size="lg" 
                 onClick={startConversation}
                 disabled={isLoading || userCredits === 0}
+                className="w-full sm:w-auto"
               >
                 {isLoading ? (
                   <>
@@ -274,49 +318,56 @@ export default function PracticePage() {
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+            <div 
+              className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 space-y-3 bg-zinc-900"
+            >
               {messages.map((message, index) => (
                 <div
                   key={index}
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[85%] sm:max-w-[75%] rounded-lg shadow-md ${
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted border border-border/40'
+                        ? 'bg-primary text-primary-foreground rounded-br-none'
+                        : 'bg-zinc-800 text-zinc-100 rounded-bl-none'
                     }`}
                   >
                     {message.role === 'assistant' && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                          <span className="text-xs font-semibold">
+                      <div className="flex items-center gap-2 px-3 pt-2 pb-1 border-b border-zinc-700/50">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-semibold text-primary">
                             {scenario.character[0]}
                           </span>
                         </div>
-                        <span className="text-xs font-medium">{scenario.character}</span>
+                        <span className="text-xs font-medium text-zinc-300">{scenario.character}</span>
                       </div>
                     )}
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <button
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        onClick={() => {
-                          const utterance = new SpeechSynthesisUtterance(message.content)
-                          utterance.lang =
-                            scenario.language === 'Francês'
-                              ? 'fr-FR'
-                              : scenario.language === 'Espanhol'
-                                ? 'es-ES'
-                                : 'en-US'
-                          speechSynthesis.speak(utterance)
-                        }}
-                      >
-                        <Volume2 className="h-3 w-3 inline mr-1" />
-                        Ouvir
-                      </button>
+                    <div className="px-3 py-2">
+                      <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap break-words">
+                        {message.content}
+                      </p>
+                      <div className="flex items-center justify-between mt-1">
+                        <button
+                          className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1"
+                          onClick={() => {
+                            const utterance = new SpeechSynthesisUtterance(message.content)
+                            utterance.lang =
+                              scenario.language === 'Francês'
+                                ? 'fr-FR'
+                                : scenario.language === 'Espanhol'
+                                  ? 'es-ES'
+                                  : 'en-US'
+                            speechSynthesis.speak(utterance)
+                          }}
+                        >
+                          <Volume2 className="h-3 w-3" />
+                          Ouvir
+                        </button>
+                        <span className="text-[10px] text-zinc-500">
+                          {message.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -324,8 +375,8 @@ export default function PracticePage() {
 
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-muted border border-border/40 rounded-2xl px-4 py-3">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                  <div className="bg-zinc-800 rounded-lg rounded-bl-none px-4 py-3 shadow-md">
+                    <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
                   </div>
                 </div>
               )}
@@ -333,49 +384,62 @@ export default function PracticePage() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="border-t border-border/40 pt-4">
+            <div className="bg-zinc-800 border-t border-zinc-700 px-3 py-3 sm:px-4 sm:py-4">
+              {isRecording && (
+                <div className="mb-3 bg-zinc-900 rounded-lg px-4 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                    <span className="text-sm text-red-400 font-medium">Gravando áudio...</span>
+                  </div>
+                  <button
+                    onClick={toggleRecording}
+                    className="text-zinc-400 hover:text-zinc-200"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
+              
               <div className="flex gap-2 items-end">
-                <Button
-                  size="icon"
-                  variant={isRecording ? 'destructive' : 'outline'}
-                  className="shrink-0"
-                  onClick={toggleRecording}
-                >
-                  {isRecording ? (
-                    <Square className="h-4 w-4" />
-                  ) : (
-                    <Mic className="h-4 w-4" />
-                  )}
-                </Button>
-
-                <div className="flex-1">
-                  <Textarea
+                <div className="flex-1 bg-zinc-900 rounded-full px-4 py-2 flex items-center gap-2">
+                  <input
+                    type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyPress}
-                    placeholder={`Digite sua resposta em ${scenario.language}...`}
-                    className="min-h-[60px] max-h-[120px] resize-none"
-                    disabled={isLoading}
+                    placeholder={`Mensagem em ${scenario.language}...`}
+                    className="flex-1 bg-transparent text-sm sm:text-base text-zinc-100 placeholder:text-zinc-500 outline-none"
+                    disabled={isLoading || isRecording}
                   />
+                  
+                  {speechSupported && !input.trim() && (
+                    <button
+                      onClick={toggleRecording}
+                      disabled={isLoading}
+                      className={`flex-shrink-0 transition-colors ${
+                        isRecording 
+                          ? 'text-red-500' 
+                          : 'text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      <Mic className="h-5 w-5" />
+                    </button>
+                  )}
                 </div>
 
                 <Button
                   size="icon"
                   onClick={sendMessage}
-                  disabled={!input.trim() || isLoading}
-                  className="shrink-0"
+                  disabled={!input.trim() || isLoading || isRecording}
+                  className="h-11 w-11 rounded-full flex-shrink-0"
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    <Send className="h-4 w-4" />
+                    <Send className="h-5 w-5" />
                   )}
                 </Button>
               </div>
-
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Pressione Enter para enviar, Shift+Enter para nova linha
-              </p>
             </div>
           </>
         )}

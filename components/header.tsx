@@ -1,10 +1,46 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Languages, Menu } from 'lucide-react'
+import { Languages, Menu, LogOut, User } from 'lucide-react'
 import Link from "next/link"
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Header() {
+  const [user, setUser] = useState<any>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/me')
+        const data = await response.json()
+        if (data.success) {
+          setUser(data.user)
+        }
+      } catch (error) {
+        console.error('[v0] Error checking auth:', error)
+      }
+    }
+    checkAuth()
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      setUser(null)
+      router.push('/')
+    } catch (error) {
+      console.error('[v0] Error logging out:', error)
+    }
+  }
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
       <div className="container mx-auto px-4 py-4">
@@ -29,14 +65,41 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <Button variant="ghost" className="hidden md:inline-flex">
-              Entrar
-            </Button>
-            <Link href="/scenarios">
-              <Button>
-                Começar Grátis
-              </Button>
-            </Link>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="gap-2">
+                    <User className="w-4 h-4" />
+                    <span className="hidden md:inline">{user.name || user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/scenarios">Meus Cenários</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/buy-credits">Comprar Créditos</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" className="hidden md:inline-flex">
+                    Entrar
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button>
+                    Começar Grátis
+                  </Button>
+                </Link>
+              </>
+            )}
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="w-5 h-5" />
             </Button>
