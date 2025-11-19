@@ -1,7 +1,9 @@
-import { Mic, ArrowLeft, Star, Lock, Sparkles } from 'lucide-react'
+import { Mic, ArrowLeft, Lock, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { getCredits } from '@/lib/credits'
 
 const scenarios = [
@@ -80,7 +82,21 @@ const difficultyColors = {
 }
 
 export default async function ScenariosPage() {
-  const userCredits = await getCredits()
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('credits')
+    .eq('id', user.id)
+    .single()
+
+  const userCredits = userProfile?.credits || 0
 
   return (
     <div className="min-h-screen bg-background">

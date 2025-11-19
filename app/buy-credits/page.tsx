@@ -52,7 +52,7 @@ export default function BuyCreditsPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {PRODUCTS.map((product) => (
               <Card
                 key={product.id}
@@ -74,7 +74,7 @@ export default function BuyCreditsPage() {
                   
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold">
-                      R$ {(product.priceInCents / 100).toFixed(2)}
+                      R$ {(product.priceInCents / 100).toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                   
@@ -105,6 +105,10 @@ export default function BuyCreditsPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-primary" />
                     <span>Créditos nunca expiram</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>Suporte a múltiplos idiomas</span>
                   </div>
                 </div>
               </Card>

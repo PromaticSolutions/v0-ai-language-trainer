@@ -5,6 +5,7 @@ import { Languages, Menu, LogOut, User } from 'lucide-react'
 import Link from "next/link"
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,25 +18,56 @@ export function Header() {
   const router = useRouter()
 
   useEffect(() => {
+    const supabase = createClient()
+    
     async function checkAuth() {
       try {
-        const response = await fetch('/api/auth/me')
-        const data = await response.json()
-        if (data.success) {
-          setUser(data.user)
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        
+        if (authUser) {
+          // Fetch user profile from database
+          const { data: profile } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', authUser.id)
+            .single()
+          
+          setUser(profile || { email: authUser.email })
         }
       } catch (error) {
         console.error('[v0] Error checking auth:', error)
       }
     }
+    
     checkAuth()
+
+    // Listen to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        
+        setUser(profile || { email: session.user.email })
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      const supabase = createClient()
+      await supabase.auth.signOut()
       setUser(null)
       router.push('/')
+      router.refresh()
     } catch (error) {
       console.error('[v0] Error logging out:', error)
     }

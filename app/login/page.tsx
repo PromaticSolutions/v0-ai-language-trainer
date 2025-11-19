@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Languages, Loader2 } from 'lucide-react'
+import { Languages, Loader2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,21 +23,18 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
-
-      const data = await response.json()
-
-      if (data.success) {
-        router.push('/scenarios')
-      } else {
-        setError(data.message || 'Erro ao fazer login')
-      }
-    } catch (error) {
-      setError('Erro ao conectar com o servidor')
+      
+      if (error) throw error
+      
+      router.push('/scenarios')
+      router.refresh()
+    } catch (error: any) {
+      setError(error.message || 'Erro ao fazer login')
     } finally {
       setIsLoading(false)
     }
@@ -45,6 +43,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
+        <Link href="/">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Button>
+        </Link>
+
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center justify-center gap-2 mb-4">
             <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary">
@@ -61,7 +66,7 @@ export default function LoginPage() {
             <CardDescription>Digite seu email e senha para acessar</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {error && (
                 <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
                   {error}
@@ -90,7 +95,7 @@ export default function LoginPage() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-4">
+            <CardFooter className="flex flex-col gap-4 mt-2">
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>

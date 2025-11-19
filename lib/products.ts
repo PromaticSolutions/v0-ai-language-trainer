@@ -11,24 +11,17 @@ export interface Product {
 export const PRODUCTS: Product[] = [
   {
     id: 'starter-pack',
-    name: 'Pacote Inicial',
-    description: '10 conversas para começar sua jornada',
-    priceInCents: 1999, // R$ 19.99
-    credits: 10,
+    name: 'Pacote Starter',
+    description: '20 conversas para começar sua jornada',
+    priceInCents: 2490, // R$ 24.90
+    credits: 20,
   },
   {
-    id: 'pro-pack',
-    name: 'Pacote Pro',
-    description: '30 conversas + bônus de 5 grátis',
-    priceInCents: 4999, // R$ 49.99
-    credits: 35,
-    popular: true,
-  },
-  {
-    id: 'unlimited-pack',
-    name: 'Pacote Ilimitado',
+    id: 'premium-pack',
+    name: 'Premium Ilimitado',
     description: '100 conversas + bônus de 20 grátis',
-    priceInCents: 14999, // R$ 149.99
+    priceInCents: 7990, // R$ 79.90
     credits: 120,
+    popular: true,
   },
 ]

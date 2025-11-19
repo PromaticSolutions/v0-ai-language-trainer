@@ -12,12 +12,14 @@ const plans = [
     price: "R$ 0",
     description: "Experimente o poder da IA",
     features: [
-      "1 cenário gratuito",
-      "5 minutos de conversação",
-      "Feedback básico",
-      "Inglês apenas"
+      "3 créditos gratuitos",
+      "Todos os cenários disponíveis",
+      "Conversação ilimitada por crédito",
+      "Feedback em tempo real",
+      "Suporte a múltiplos idiomas"
     ],
-    cta: "Começar Agora",
+    cta: "Começar Grátis",
+    href: "/register",
     popular: false
   },
   {
@@ -25,30 +27,33 @@ const plans = [
     price: "R$ 24,90",
     description: "Perfeito para começar sua jornada",
     features: [
+      "20 créditos de conversação",
       "Todos os cenários",
-      "30 minutos de conversação",
+      "Conversação ilimitada por crédito",
       "Feedback detalhado",
-      "3 idiomas disponíveis",
-      "Histórico de progresso"
+      "Suporte a múltiplos idiomas",
+      "Créditos nunca expiram"
     ],
     cta: "Comprar Pacote",
-    popular: true
+    href: "/buy-credits",
+    popular: false
   },
   {
     name: "Premium Ilimitado",
-    price: "R$ 79,90/mês",
+    price: "R$ 79,90",
     description: "Para os verdadeiros fluentes",
     features: [
+      "120 créditos (100 + 20 bônus)",
       "Todos os cenários",
-      "Conversação ilimitada",
+      "Conversação ilimitada por crédito",
       "Feedback avançado com gramática",
-      "Todos os idiomas",
-      "Progresso detalhado",
-      "Novos cenários semanais",
-      "Suporte prioritário"
+      "Suporte a múltiplos idiomas",
+      "Créditos nunca expiram",
+      "Melhor custo-benefício"
     ],
-    cta: "Assinar Premium",
-    popular: false
+    cta: "Comprar Premium",
+    href: "/buy-credits",
+    popular: true
   }
 ]
 
@@ -100,7 +105,7 @@ export function Pricing() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Link href={index === 0 ? "/scenarios" : "/buy-credits"} className="w-full">
+                <Link href={plan.href} className="w-full">
                   <Button 
                     className="w-full" 
                     variant={plan.popular ? "default" : "outline"}
