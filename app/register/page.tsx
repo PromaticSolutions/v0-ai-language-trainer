@@ -41,7 +41,7 @@ export default function RegisterPage() {
         email,
         password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/scenarios`,
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
           data: {
             name: name,
           }
@@ -50,8 +50,7 @@ export default function RegisterPage() {
       
       if (error) throw error
       
-      // User created successfully with 3 free credits (via trigger)
-      router.push('/scenarios')
+      router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
       setError(error.message || 'Erro ao criar conta')

@@ -31,7 +31,7 @@ export default function LoginPage() {
       
       if (error) throw error
       
-      router.push('/scenarios')
+      router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
       setError(error.message || 'Erro ao fazer login')

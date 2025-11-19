@@ -102,19 +102,20 @@ export default async function ScenariosPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/dashboard" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-4 w-4" />
-              <span>Voltar</span>
+              <span className="hidden sm:inline">Voltar</span>
             </Link>
-            <div className="flex items-center gap-4">
-              <div className="px-4 py-2 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">{userCredits} créditos disponíveis</span>
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="px-3 md:px-4 py-2 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-xs md:text-sm font-medium">{userCredits} crédito{userCredits !== 1 ? 's' : ''}</span>
               </div>
               <Link href="/buy-credits">
-                <Button variant="outline" size="sm">
-                  Comprar Créditos
+                <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                  <span className="hidden sm:inline">Comprar</span>
+                  <span className="sm:hidden">+</span>
                 </Button>
               </Link>
             </div>
@@ -122,17 +123,17 @@ export default async function ScenariosPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold mb-4 text-balance">
+      <main className="container mx-auto px-4 py-8 md:py-12">
+        <div className="mb-8 md:mb-12 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-balance">
             Escolha Seu Cenário
           </h1>
-          <p className="text-xl text-muted-foreground text-balance">
+          <p className="text-base md:text-xl text-muted-foreground text-balance">
             Pratique conversação em situações do dia a dia
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {scenarios.map((scenario) => (
             <div
               key={scenario.id}

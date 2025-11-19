@@ -30,13 +30,13 @@ export function Hero() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Link href="/scenarios">
-              <Button size="lg" className="text-lg px-8 py-6 group">
+            <Link href="/register">
+              <Button size="lg" className="text-lg px-8 py-6 group w-full sm:w-auto">
                 Começar Minha Simulação Gratuita
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6" onClick={() => {
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6 w-full sm:w-auto" onClick={() => {
               document.getElementById('scenarios')?.scrollIntoView({ behavior: 'smooth' })
             }}>
               Ver Como Funciona

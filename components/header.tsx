@@ -107,7 +107,7 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link href="/scenarios">Meus Cenários</Link>
+                    <Link href="/dashboard">Meu Dashboard</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/buy-credits">Comprar Créditos</Link>
