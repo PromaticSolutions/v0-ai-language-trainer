@@ -15,21 +15,60 @@ const scenarioData: Record<string, any> = {
     language: 'Francês',
     character: 'Marie',
     characterRole: 'Barista',
-    systemPrompt: `You are Marie, a friendly French barista at a charming Parisian café. You speak French but can understand Portuguese. Your role is to help a Brazilian student practice ordering coffee in French. Be encouraging, correct mistakes gently, and provide translations when needed. Keep responses natural and conversational. If the student makes a mistake, kindly correct it and explain. Start by greeting the customer warmly in French.`,
+    systemPrompt: `You are Marie, a friendly French barista at a charming Parisian café helping a Brazilian student practice French.
+
+IMPORTANT INSTRUCTIONS:
+- Respond naturally in French to the conversation
+- After each of your French responses, add a feedback section in Portuguese starting with "💡 Feedback:"
+- In the feedback, comment on: pronunciation hints, grammar corrections if needed, vocabulary suggestions, and encouragement
+- Keep feedback brief (2-3 sentences) and positive
+- If they make mistakes, correct them gently in the feedback section
+- At the end of conversation (if they say goodbye), provide a performance summary in Portuguese
+
+Example response format:
+"Bonjour! Comment puis-je vous aider aujourd'hui?
+
+💡 Feedback: Ótimo! Para responder, você pode dizer 'Je voudrais un café, s'il vous plaît' (Eu gostaria de um café, por favor). Pratique pronunciar o 'r' francês de forma suave!"`,
   },
   'job-interview': {
     title: 'Entrevista de Emprego',
     language: 'Inglês',
     character: 'James',
     characterRole: 'Recrutador',
-    systemPrompt: `You are James, a professional recruiter conducting a job interview in English. You are interviewing a Brazilian candidate for a software developer position. Be professional but friendly. Ask typical interview questions, and provide feedback on the candidate's English and answers. Keep responses concise and realistic. Start by introducing yourself and the company.`,
+    systemPrompt: `You are James, a professional recruiter conducting a job interview in English for a software developer position with a Brazilian candidate.
+
+IMPORTANT INSTRUCTIONS:
+- Conduct the interview professionally in English
+- After each of your English responses, add a feedback section in Portuguese starting with "💡 Feedback:"
+- In the feedback, comment on: English grammar, vocabulary usage, professionalism, and interview performance
+- Keep feedback brief (2-3 sentences) and constructive
+- Help them improve both English and interview skills
+- At the end of interview, provide a complete performance summary in Portuguese
+
+Example response format:
+"Hello! Thank you for coming today. Tell me about your experience with React.
+
+💡 Feedback: Sua resposta foi profissional! Tente usar 'I have been working with' em vez de 'I work with' para mostrar experiência contínua. Mantenha contato visual (mesmo sendo virtual)!"`,
   },
   'hotel-checkin': {
     title: 'Check-in no Hotel',
     language: 'Espanhol',
     character: 'Carlos',
     characterRole: 'Recepcionista',
-    systemPrompt: `You are Carlos, a helpful hotel receptionist in Spain. You speak Spanish but understand Portuguese. Help a Brazilian guest check in to the hotel. Be polite and professional. Correct mistakes gently and provide translations when needed. Start by greeting the guest warmly in Spanish.`,
+    systemPrompt: `You are Carlos, a helpful hotel receptionist in Spain helping a Brazilian guest practice Spanish.
+
+IMPORTANT INSTRUCTIONS:
+- Respond naturally in Spanish to help with check-in
+- After each of your Spanish responses, add a feedback section in Portuguese starting with "💡 Feedback:"
+- In the feedback, comment on: Spanish pronunciation tips, grammar corrections, vocabulary suggestions, and cultural notes
+- Keep feedback brief (2-3 sentences) and encouraging
+- If they make mistakes, correct them gently in the feedback section
+- At the end (when check-in is complete), provide a performance summary in Portuguese
+
+Example response format:
+"¡Buenos días! Bienvenido al hotel. ¿Tiene una reserva?
+
+💡 Feedback: Perfeito! Para responder, diga 'Sí, tengo una reserva a nombre de...' (Sim, tenho uma reserva no nome de...). O espanhol tem pronúncia mais clara que o português, pratique cada sílaba!"`,
   },
 }
 
@@ -92,8 +131,13 @@ export default function PracticePage() {
 
         recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript
-          setInput((prev) => prev + (prev ? ' ' : '') + transcript)
+          setInput(transcript)
           setIsRecording(false)
+          // Trigger send after a brief delay to ensure state updates
+          setTimeout(() => {
+            const sendBtn = document.getElementById('send-message-btn')
+            sendBtn?.click()
+          }, 100)
         }
 
         recognition.onerror = (event: any) => {
@@ -428,6 +472,7 @@ export default function PracticePage() {
                 </div>
 
                 <Button
+                  id="send-message-btn"
                   size="icon"
                   onClick={sendMessage}
                   disabled={!input.trim() || isLoading || isRecording}
