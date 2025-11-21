@@ -1,44 +1,44 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Home, MessageSquare, TrendingUp, CreditCard, Menu, X, Trophy, Clock, Star } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Home, MessageSquare, TrendingUp, CreditCard, Menu, X, Trophy, Clock, Star } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 const scenarios = [
   {
-    id: 'cafe-paris',
-    name: 'Café em Paris',
-    language: 'Francês',
-    difficulty: 'Iniciante',
-    image: '/parisian-cafe-interior.jpg',
-    icon: '☕'
+    id: "cafe-paris",
+    name: "Café em Paris",
+    language: "Francês",
+    difficulty: "Iniciante",
+    image: "/parisian-cafe-interior.jpg",
+    icon: "☕",
   },
   {
-    id: 'job-interview',
-    name: 'Entrevista de Emprego',
-    language: 'Inglês',
-    difficulty: 'Avançado',
-    image: '/professional-office-interview.jpg',
-    icon: '💼'
+    id: "job-interview",
+    name: "Entrevista de Emprego",
+    language: "Inglês",
+    difficulty: "Avançado",
+    image: "/professional-office-interview.jpg",
+    icon: "💼",
   },
   {
-    id: 'hotel-checkin',
-    name: 'Check-in no Hotel',
-    language: 'Inglês',
-    difficulty: 'Intermediário',
-    image: '/hotel-lobby-reception.jpg',
-    icon: '🏨'
+    id: "hotel-checkin",
+    name: "Check-in no Hotel",
+    language: "Inglês",
+    difficulty: "Intermediário",
+    image: "/hotel-lobby-reception.jpg",
+    icon: "🏨",
   },
   {
-    id: 'restaurant-reservation',
-    name: 'Reserva no Restaurante',
-    language: 'Espanhol',
-    difficulty: 'Intermediário',
-    image: '/traditional-japanese-restaurant.jpg',
-    icon: '🍽️'
+    id: "restaurant-reservation",
+    name: "Reserva no Restaurante",
+    language: "Espanhol",
+    difficulty: "Intermediário",
+    image: "/traditional-japanese-restaurant.jpg",
+    icon: "🍽️",
   },
 ]
 
@@ -48,7 +48,7 @@ interface DashboardContentProps {
 }
 
 export function DashboardContent({ user, conversations }: DashboardContentProps) {
-  const [activeTab, setActiveTab] = useState('scenarios')
+  const [activeTab, setActiveTab] = useState("scenarios")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const router = useRouter()
 
@@ -64,11 +64,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
         <div className="flex items-center justify-between p-4">
           <h1 className="text-xl font-bold">Fluency AI</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
+          <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
         </div>
@@ -76,17 +72,19 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
 
       <div className="flex pt-16 lg:pt-0">
         {/* Sidebar */}
-        <aside className={`
+        <aside
+          className={`
           fixed lg:sticky top-16 lg:top-0 left-0 bottom-0 z-40
           w-64 border-r border-border bg-background
           transition-transform duration-200 lg:translate-x-0
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
           lg:h-screen overflow-y-auto
-        `}>
+        `}
+        >
           <div className="p-6 space-y-6">
             {/* User Info */}
             <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Olá, {user?.name || 'Aluno'}!</h2>
+              <h2 className="text-lg font-semibold">Olá, {user?.name || "Aluno"}!</h2>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
               <div className="flex items-center gap-2 text-sm">
                 <CreditCard className="w-4 h-4 text-primary" />
@@ -97,10 +95,10 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
             {/* Navigation */}
             <nav className="space-y-2">
               <Button
-                variant={activeTab === 'scenarios' ? 'secondary' : 'ghost'}
+                variant={activeTab === "scenarios" ? "secondary" : "ghost"}
                 className="w-full justify-start"
                 onClick={() => {
-                  setActiveTab('scenarios')
+                  setActiveTab("scenarios")
                   setMobileMenuOpen(false)
                 }}
               >
@@ -108,10 +106,10 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
                 Cenários
               </Button>
               <Button
-                variant={activeTab === 'history' ? 'secondary' : 'ghost'}
+                variant={activeTab === "history" ? "secondary" : "ghost"}
                 className="w-full justify-start"
                 onClick={() => {
-                  setActiveTab('history')
+                  setActiveTab("history")
                   setMobileMenuOpen(false)
                 }}
               >
@@ -119,21 +117,17 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
                 Histórico
               </Button>
               <Button
-                variant={activeTab === 'progress' ? 'secondary' : 'ghost'}
+                variant={activeTab === "progress" ? "secondary" : "ghost"}
                 className="w-full justify-start"
                 onClick={() => {
-                  setActiveTab('progress')
+                  setActiveTab("progress")
                   setMobileMenuOpen(false)
                 }}
               >
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Progresso
               </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                asChild
-              >
+              <Button variant="ghost" className="w-full justify-start" asChild>
                 <Link href="/buy-credits">
                   <CreditCard className="w-4 h-4 mr-2" />
                   Comprar Créditos
@@ -157,7 +151,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
 
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-          {activeTab === 'scenarios' && (
+          {activeTab === "scenarios" && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">Escolha seu Cenário</h1>
@@ -169,7 +163,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
                   <Card
                     key={scenario.id}
                     className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
-                    onClick={() => router.push(`/practice/${scenario.id}`)}
+                    onClick={() => router.push(`/select-language/${scenario.id}`)}
                   >
                     <div className="aspect-video relative overflow-hidden bg-muted">
                       <img
@@ -195,7 +189,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
             </div>
           )}
 
-          {activeTab === 'history' && (
+          {activeTab === "history" && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">Histórico de Conversas</h1>
@@ -209,9 +203,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Nenhuma conversa ainda</h3>
                       <p className="text-muted-foreground mb-4">Comece sua primeira prática!</p>
-                      <Button onClick={() => setActiveTab('scenarios')}>
-                        Explorar Cenários
-                      </Button>
+                      <Button onClick={() => setActiveTab("scenarios")}>Explorar Cenários</Button>
                     </div>
                   </div>
                 </Card>
@@ -225,7 +217,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
                             <CardTitle className="text-base md:text-lg truncate">{conv.scenario_name}</CardTitle>
                             <CardDescription className="flex flex-wrap items-center gap-2 mt-2 text-xs md:text-sm">
                               <Clock className="w-3 h-3 md:w-4 md:h-4" />
-                              {new Date(conv.created_at).toLocaleDateString('pt-BR')}
+                              {new Date(conv.created_at).toLocaleDateString("pt-BR")}
                               {conv.duration && (
                                 <>
                                   <span>•</span>
@@ -234,7 +226,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
                               )}
                             </CardDescription>
                           </div>
-                          <Button size="sm" variant="outline" className="shrink-0 text-xs md:text-sm">
+                          <Button size="sm" variant="outline" className="shrink-0 text-xs md:text-sm bg-transparent">
                             Ver detalhes
                           </Button>
                         </div>
@@ -242,9 +234,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
                       {conv.feedback && (
                         <CardContent className="pt-0">
                           <div className="bg-muted/50 rounded-lg p-3 md:p-4">
-                            <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
-                              {conv.feedback}
-                            </p>
+                            <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">{conv.feedback}</p>
                           </div>
                         </CardContent>
                       )}
@@ -255,7 +245,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
             </div>
           )}
 
-          {activeTab === 'progress' && (
+          {activeTab === "progress" && (
             <div className="space-y-6">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">Seu Progresso</h1>
@@ -295,7 +285,7 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
                     <CardTitle className="text-2xl md:text-3xl">{stats.credits}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Button size="sm" variant="outline" asChild className="w-full text-xs md:text-sm">
+                    <Button size="sm" variant="outline" asChild className="w-full text-xs md:text-sm bg-transparent">
                       <Link href="/buy-credits">Comprar mais</Link>
                     </Button>
                   </CardContent>

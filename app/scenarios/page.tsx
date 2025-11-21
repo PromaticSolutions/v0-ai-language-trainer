@@ -1,87 +1,85 @@
-import { Mic, ArrowLeft, Sparkles, Globe } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { Mic, ArrowLeft, Sparkles, Globe } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
 const scenarios = [
   {
-    id: 'coffee-shop',
-    title: 'Cafeteria',
-    description: 'Pratique pedindo seu café favorito em uma cafeteria',
-    difficulty: 'Iniciante',
+    id: "coffee-shop",
+    title: "Cafeteria",
+    description: "Pratique pedindo seu café favorito em uma cafeteria",
+    difficulty: "Iniciante",
     credits: 1,
-    character: 'Barista',
-    image: '/parisian-cafe-interior.jpg',
+    character: "Barista",
+    image: "/parisian-cafe-interior.jpg",
   },
   {
-    id: 'job-interview',
-    title: 'Entrevista de Emprego',
-    description: 'Prepare-se para entrevistas profissionais',
-    difficulty: 'Avançado',
+    id: "job-interview",
+    title: "Entrevista de Emprego",
+    description: "Prepare-se para entrevistas profissionais",
+    difficulty: "Avançado",
     credits: 1,
-    character: 'Recrutador',
-    image: '/professional-office-interview.jpg',
+    character: "Recrutador",
+    image: "/professional-office-interview.jpg",
   },
   {
-    id: 'hotel-checkin',
-    title: 'Check-in no Hotel',
-    description: 'Aprenda a fazer check-in em hotéis',
-    difficulty: 'Intermediário',
+    id: "hotel-checkin",
+    title: "Check-in no Hotel",
+    description: "Aprenda a fazer check-in em hotéis",
+    difficulty: "Intermediário",
     credits: 1,
-    character: 'Recepcionista',
-    image: '/hotel-lobby-reception.jpg',
+    character: "Recepcionista",
+    image: "/hotel-lobby-reception.jpg",
   },
   {
-    id: 'restaurant',
-    title: 'Restaurante',
-    description: 'Pratique fazer pedidos em um restaurante',
-    difficulty: 'Intermediário',
+    id: "restaurant",
+    title: "Restaurante",
+    description: "Pratique fazer pedidos em um restaurante",
+    difficulty: "Intermediário",
     credits: 1,
-    character: 'Garçom/Garçonete',
-    image: '/traditional-japanese-restaurant.jpg',
+    character: "Garçom/Garçonete",
+    image: "/traditional-japanese-restaurant.jpg",
   },
   {
-    id: 'doctor-appointment',
-    title: 'Consulta Médica',
-    description: 'Descreva sintomas e entenda orientações médicas',
-    difficulty: 'Intermediário',
+    id: "doctor-appointment",
+    title: "Consulta Médica",
+    description: "Descreva sintomas e entenda orientações médicas",
+    difficulty: "Intermediário",
     credits: 1,
-    character: 'Médico',
-    image: '/modern-medical-office.png',
+    character: "Médico",
+    image: "/modern-medical-office.png",
   },
   {
-    id: 'business-meeting',
-    title: 'Reunião de Negócios',
-    description: 'Conduza reuniões profissionais com confiança',
-    difficulty: 'Avançado',
+    id: "business-meeting",
+    title: "Reunião de Negócios",
+    description: "Conduza reuniões profissionais com confiança",
+    difficulty: "Avançado",
     credits: 1,
-    character: 'Executivo',
-    image: '/modern-conference-room.png',
+    character: "Executivo",
+    image: "/modern-conference-room.png",
   },
 ]
 
 const difficultyColors = {
-  Iniciante: 'bg-green-500/20 text-green-400 border-green-500/30',
-  Intermediário: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  Avançado: 'bg-red-500/20 text-red-400 border-red-500/30',
+  Iniciante: "bg-green-500/20 text-green-400 border-green-500/30",
+  Intermediário: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  Avançado: "bg-red-500/20 text-red-400 border-red-500/30",
 }
 
 export default async function ScenariosPage() {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   if (!user) {
-    redirect('/login')
+    redirect("/login")
   }
 
-  const { data: userProfile } = await supabase
-    .from('users')
-    .select('credits')
-    .eq('id', user.id)
-    .single()
+  const { data: userProfile } = await supabase.from("users").select("credits").eq("id", user.id).single()
 
   const userCredits = userProfile?.credits || 0
 
@@ -90,17 +88,22 @@ export default async function ScenariosPage() {
       <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
-            <Link href="/dashboard" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Voltar</span>
+              <span className="hidden sm:inline">Voltar ao Dashboard</span>
             </Link>
             <div className="flex items-center gap-2 md:gap-4">
               <div className="px-3 md:px-4 py-2 rounded-full bg-primary/10 border border-primary/20 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-xs md:text-sm font-medium">{userCredits} crédito{userCredits !== 1 ? 's' : ''}</span>
+                <span className="text-xs md:text-sm font-medium">
+                  {userCredits} crédito{userCredits !== 1 ? "s" : ""}
+                </span>
               </div>
               <Link href="/buy-credits">
-                <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                <Button variant="outline" size="sm" className="text-xs md:text-sm bg-transparent">
                   <span className="hidden sm:inline">Comprar</span>
                   <span className="sm:hidden">+</span>
                 </Button>
@@ -112,9 +115,7 @@ export default async function ScenariosPage() {
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mb-8 md:mb-12 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-balance">
-            Escolha Seu Cenário
-          </h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-balance">Escolha Seu Cenário</h1>
           <p className="text-base md:text-xl text-muted-foreground text-balance">
             Pratique conversação em situações do dia a dia
           </p>
@@ -134,7 +135,7 @@ export default async function ScenariosPage() {
                 />
                 <div className="absolute top-3 right-3 flex gap-2">
                   <Badge variant="secondary" className="bg-background/80 backdrop-blur">
-                    {scenario.credits} crédito{scenario.credits > 1 ? 's' : ''}
+                    {scenario.credits} crédito{scenario.credits > 1 ? "s" : ""}
                   </Badge>
                 </div>
               </div>
@@ -142,9 +143,7 @@ export default async function ScenariosPage() {
               <div className="p-5">
                 <div className="mb-3">
                   <h3 className="text-xl font-semibold mb-1">{scenario.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {scenario.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-3">{scenario.description}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                     <Mic className="h-3 w-3" />
                     <span>{scenario.character}</span>
