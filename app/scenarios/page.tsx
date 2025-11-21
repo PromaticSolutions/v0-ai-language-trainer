@@ -1,77 +1,64 @@
-import { Mic, ArrowLeft, Lock, Sparkles } from 'lucide-react'
+import { Mic, ArrowLeft, Sparkles, Globe } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getCredits } from '@/lib/credits'
 
 const scenarios = [
   {
-    id: 'coffee-paris',
-    title: 'Café em Paris',
-    description: 'Pratique pedindo seu café favorito em uma cafeteria parisiense',
-    language: 'Francês',
+    id: 'coffee-shop',
+    title: 'Cafeteria',
+    description: 'Pratique pedindo seu café favorito em uma cafeteria',
     difficulty: 'Iniciante',
     credits: 1,
-    character: 'Marie - Barista',
+    character: 'Barista',
     image: '/parisian-cafe-interior.jpg',
-    unlocked: true,
   },
   {
     id: 'job-interview',
     title: 'Entrevista de Emprego',
-    description: 'Prepare-se para entrevistas profissionais em inglês',
-    language: 'Inglês',
+    description: 'Prepare-se para entrevistas profissionais',
     difficulty: 'Avançado',
-    credits: 2,
-    character: 'James - Recrutador',
+    credits: 1,
+    character: 'Recrutador',
     image: '/professional-office-interview.jpg',
-    unlocked: true,
   },
   {
     id: 'hotel-checkin',
     title: 'Check-in no Hotel',
-    description: 'Aprenda a fazer check-in em hotéis internacionais',
-    language: 'Espanhol',
+    description: 'Aprenda a fazer check-in em hotéis',
     difficulty: 'Intermediário',
     credits: 1,
-    character: 'Carlos - Recepcionista',
+    character: 'Recepcionista',
     image: '/hotel-lobby-reception.jpg',
-    unlocked: true,
   },
   {
-    id: 'restaurant-tokyo',
-    title: 'Restaurante em Tokyo',
-    description: 'Pratique fazer pedidos em um restaurante japonês',
-    language: 'Japonês',
+    id: 'restaurant',
+    title: 'Restaurante',
+    description: 'Pratique fazer pedidos em um restaurante',
     difficulty: 'Intermediário',
-    credits: 2,
-    character: 'Yuki - Garçonete',
+    credits: 1,
+    character: 'Garçom/Garçonete',
     image: '/traditional-japanese-restaurant.jpg',
-    unlocked: false,
   },
   {
     id: 'doctor-appointment',
     title: 'Consulta Médica',
     description: 'Descreva sintomas e entenda orientações médicas',
-    language: 'Inglês',
     difficulty: 'Intermediário',
     credits: 1,
-    character: 'Dr. Smith - Médico',
+    character: 'Médico',
     image: '/modern-medical-office.png',
-    unlocked: false,
   },
   {
     id: 'business-meeting',
     title: 'Reunião de Negócios',
     description: 'Conduza reuniões profissionais com confiança',
-    language: 'Inglês',
     difficulty: 'Avançado',
-    credits: 3,
-    character: 'Anna - Executiva',
+    credits: 1,
+    character: 'Executivo',
     image: '/modern-conference-room.png',
-    unlocked: false,
   },
 ]
 
@@ -139,15 +126,6 @@ export default async function ScenariosPage() {
               key={scenario.id}
               className="group relative rounded-xl border border-border/40 bg-card overflow-hidden hover:border-primary/50 transition-all duration-300"
             >
-              {!scenario.unlocked && (
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
-                  <div className="text-center">
-                    <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Bloqueado</p>
-                  </div>
-                </div>
-              )}
-
               <div className="relative h-48 overflow-hidden">
                 <img
                   src={scenario.image || "/placeholder.svg"}
@@ -174,8 +152,9 @@ export default async function ScenariosPage() {
                 </div>
 
                 <div className="flex items-center gap-2 mb-4">
-                  <Badge variant="outline" className="text-xs">
-                    {scenario.language}
+                  <Badge variant="outline" className="text-xs flex items-center gap-1">
+                    <Globe className="h-3 w-3" />
+                    Qualquer idioma
                   </Badge>
                   <Badge
                     variant="outline"
@@ -185,17 +164,11 @@ export default async function ScenariosPage() {
                   </Badge>
                 </div>
 
-                {scenario.unlocked ? (
-                  <Link href={`/practice/${scenario.id}`} className="block">
-                    <Button className="w-full" size="sm">
-                      Começar Prática
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button className="w-full" size="sm" variant="outline" disabled>
-                    Em Breve
+                <Link href={`/select-language/${scenario.id}`} className="block">
+                  <Button className="w-full" size="sm">
+                    Começar Prática
                   </Button>
-                )}
+                </Link>
               </div>
             </div>
           ))}

@@ -1,75 +1,53 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ArrowLeft, Mic, Square, Volume2, Loader2, Send, AlertCircle, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, Mic, Volume2, Loader2, Send, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { useParams, useRouter } from 'next/navigation'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 
 const scenarioData: Record<string, any> = {
-  'coffee-paris': {
-    title: 'Café em Paris',
-    language: 'Francês',
-    character: 'Marie',
+  'coffee-shop': {
+    title: 'Cafeteria',
+    character: 'Alex',
     characterRole: 'Barista',
-    systemPrompt: `You are Marie, a friendly French barista at a charming Parisian café helping a Brazilian student practice French.
-
-IMPORTANT INSTRUCTIONS:
-- Respond naturally in French to the conversation
-- After each of your French responses, add a feedback section in Portuguese starting with "💡 Feedback:"
-- In the feedback, comment on: pronunciation hints, grammar corrections if needed, vocabulary suggestions, and encouragement
-- Keep feedback brief (2-3 sentences) and positive
-- If they make mistakes, correct them gently in the feedback section
-- At the end of conversation (if they say goodbye), provide a performance summary in Portuguese
-
-Example response format:
-"Bonjour! Comment puis-je vous aider aujourd'hui?
-
-💡 Feedback: Ótimo! Para responder, você pode dizer 'Je voudrais un café, s'il vous plaît' (Eu gostaria de um café, por favor). Pratique pronunciar o 'r' francês de forma suave!"`,
   },
   'job-interview': {
     title: 'Entrevista de Emprego',
-    language: 'Inglês',
-    character: 'James',
+    character: 'Jordan',
     characterRole: 'Recrutador',
-    systemPrompt: `You are James, a professional recruiter conducting a job interview in English for a software developer position with a Brazilian candidate.
-
-IMPORTANT INSTRUCTIONS:
-- Conduct the interview professionally in English
-- After each of your English responses, add a feedback section in Portuguese starting with "💡 Feedback:"
-- In the feedback, comment on: English grammar, vocabulary usage, professionalism, and interview performance
-- Keep feedback brief (2-3 sentences) and constructive
-- Help them improve both English and interview skills
-- At the end of interview, provide a complete performance summary in Portuguese
-
-Example response format:
-"Hello! Thank you for coming today. Tell me about your experience with React.
-
-💡 Feedback: Sua resposta foi profissional! Tente usar 'I have been working with' em vez de 'I work with' para mostrar experiência contínua. Mantenha contato visual (mesmo sendo virtual)!"`,
   },
   'hotel-checkin': {
     title: 'Check-in no Hotel',
-    language: 'Espanhol',
-    character: 'Carlos',
+    character: 'Sam',
     characterRole: 'Recepcionista',
-    systemPrompt: `You are Carlos, a helpful hotel receptionist in Spain helping a Brazilian guest practice Spanish.
-
-IMPORTANT INSTRUCTIONS:
-- Respond naturally in Spanish to help with check-in
-- After each of your Spanish responses, add a feedback section in Portuguese starting with "💡 Feedback:"
-- In the feedback, comment on: Spanish pronunciation tips, grammar corrections, vocabulary suggestions, and cultural notes
-- Keep feedback brief (2-3 sentences) and encouraging
-- If they make mistakes, correct them gently in the feedback section
-- At the end (when check-in is complete), provide a performance summary in Portuguese
-
-Example response format:
-"¡Buenos días! Bienvenido al hotel. ¿Tiene una reserva?
-
-💡 Feedback: Perfeito! Para responder, diga 'Sí, tengo una reserva a nombre de...' (Sim, tenho uma reserva no nome de...). O espanhol tem pronúncia mais clara que o português, pratique cada sílaba!"`,
   },
+  'restaurant': {
+    title: 'Restaurante',
+    character: 'Taylor',
+    characterRole: 'Garçom/Garçonete',
+  },
+  'doctor-appointment': {
+    title: 'Consulta Médica',
+    character: 'Dr. Morgan',
+    characterRole: 'Médico',
+  },
+  'business-meeting': {
+    title: 'Reunião de Negócios',
+    character: 'Chris',
+    characterRole: 'Executivo',
+  },
+}
+
+const languageConfig: Record<string, any> = {
+  english: { name: 'Inglês', code: 'en-US', nativeName: 'English' },
+  spanish: { name: 'Espanhol', code: 'es-ES', nativeName: 'Español' },
+  french: { name: 'Francês', code: 'fr-FR', nativeName: 'Français' },
+  german: { name: 'Alemão', code: 'de-DE', nativeName: 'Deutsch' },
+  italian: { name: 'Italiano', code: 'it-IT', nativeName: 'Italiano' },
+  portuguese: { name: 'Português', code: 'pt-PT', nativeName: 'Português' },
+  japanese: { name: 'Japonês', code: 'ja-JP', nativeName: '日本語' },
+  mandarin: { name: 'Mandarim', code: 'zh-CN', nativeName: '中文' },
 }
 
 interface Message {
@@ -81,8 +59,27 @@ interface Message {
 export default function PracticePage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const scenarioId = params?.scenarioId as string
+  const languageId = searchParams?.get('language') || 'english'
+  
   const scenario = scenarioData[scenarioId]
+  const language = languageConfig[languageId]
+
+  const systemPrompt = `You are ${scenario?.character}, a friendly ${scenario?.characterRole} helping a Brazilian student practice ${language?.nativeName} (${language?.name}).
+
+IMPORTANT INSTRUCTIONS:
+- Respond naturally in ${language?.nativeName} to the conversation
+- After each of your ${language?.nativeName} responses, add a feedback section in Portuguese starting with "💡 Feedback:"
+- In the feedback, comment on: pronunciation hints, grammar corrections if needed, vocabulary suggestions, and encouragement
+- Keep feedback brief (2-3 sentences) and positive
+- If they make mistakes, correct them gently in the feedback section
+- At the end of conversation (if they say goodbye), provide a performance summary in Portuguese
+
+Example response format:
+"[Response in ${language?.nativeName}]
+
+💡 Feedback: [Brief feedback in Portuguese about their language use]"`
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -119,24 +116,17 @@ export default function PracticePage() {
         setSpeechSupported(true)
         const recognition = new SpeechRecognition()
         
-        const languageMap: Record<string, string> = {
-          'Francês': 'fr-FR',
-          'Inglês': 'en-US',
-          'Espanhol': 'es-ES',
-        }
-        recognition.lang = languageMap[scenario?.language] || 'en-US'
+        recognition.lang = language?.code || 'en-US'
         recognition.continuous = false
         recognition.interimResults = false
         recognition.maxAlternatives = 1
 
         recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript
+          console.log('[v0] Audio transcribed:', transcript)
           setInput(transcript)
-          setIsRecording(false)
-          // Trigger send after a brief delay to ensure state updates
           setTimeout(() => {
-            const sendBtn = document.getElementById('send-message-btn')
-            sendBtn?.click()
+            handleSendAfterTranscription(transcript)
           }, 100)
         }
 
@@ -146,13 +136,120 @@ export default function PracticePage() {
         }
 
         recognition.onend = () => {
+          console.log('[v0] Recording ended')
           setIsRecording(false)
         }
 
         recognitionRef.current = recognition
       }
     }
-  }, [scenario])
+  }, [scenario, language])
+
+  const handleSendAfterTranscription = async (transcribedText: string) => {
+    if (!transcribedText.trim() || isLoading) return
+
+    const userMessage: Message = {
+      role: 'user',
+      content: transcribedText,
+      timestamp: new Date(),
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    setInput('')
+    setIsLoading(true)
+
+    try {
+      const conversationHistory = [
+        { role: 'system', content: systemPrompt },
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+        { role: 'user', content: transcribedText },
+      ]
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversationHistory }),
+      })
+
+      if (!response.ok) throw new Error('Failed to send message')
+
+      const data = await response.json()
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, assistantMessage])
+    } catch (error) {
+      console.error('[v0] Error sending message:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return
+
+    const userMessage: Message = {
+      role: 'user',
+      content: input,
+      timestamp: new Date(),
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    const messageText = input
+    setInput('')
+    setIsLoading(true)
+
+    try {
+      const conversationHistory = [
+        { role: 'system', content: systemPrompt },
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+        { role: 'user', content: messageText },
+      ]
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversationHistory }),
+      })
+
+      if (!response.ok) throw new Error('Failed to send message')
+
+      const data = await response.json()
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, assistantMessage])
+    } catch (error) {
+      console.error('[v0] Error sending message:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) return
+
+    if (isRecording) {
+      recognitionRef.current.stop()
+      setIsRecording(false)
+    } else {
+      setIsRecording(true)
+      recognitionRef.current.start()
+    }
+  }
 
   const startConversation = async () => {
     if (conversationStarted) return
@@ -178,7 +275,7 @@ export default function PracticePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [{ role: 'system', content: scenario.systemPrompt }],
+          messages: [{ role: 'system', content: systemPrompt }],
         }),
       })
 
@@ -199,108 +296,22 @@ export default function PracticePage() {
     }
   }
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return
-
-    const userMessage: Message = {
-      role: 'user',
-      content: input,
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInput('')
-    setIsLoading(true)
-
-    try {
-      const conversationHistory = [
-        { role: 'system', content: scenario.systemPrompt },
-        ...messages.map((m) => ({ role: m.role, content: m.content })),
-        { role: 'user', content: input },
-      ]
-
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: conversationHistory }),
-      })
-
-      if (!response.ok) throw new Error('Failed to send message')
-
-      const data = await response.json()
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: data.message,
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-    } catch (error) {
-      console.error('Error sending message:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
-  }
-
-  const toggleRecording = () => {
-    if (!recognitionRef.current) return
-
-    if (isRecording) {
-      recognitionRef.current.stop()
-      setIsRecording(false)
-    } else {
-      setIsRecording(true)
-      recognitionRef.current.start()
-    }
-  }
-
-  if (!scenario) {
-    return <div>Cenário não encontrado</div>
-  }
-
-  if (creditError) {
+  if (!scenario || !language) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md w-full space-y-6 text-center">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Você não tem créditos suficientes para iniciar esta conversa.
-            </AlertDescription>
-          </Alert>
-          <div className="space-y-4">
-            <p className="text-muted-foreground">
-              Compre mais créditos para continuar praticando!
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link href="/buy-credits">
-                <Button size="lg">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Comprar Créditos
-                </Button>
-              </Link>
-              <Link href="/scenarios">
-                <Button variant="outline" size="lg">
-                  Voltar aos Cenários
-                </Button>
-              </Link>
-            </div>
-          </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Cenário não encontrado</h1>
+          <Link href="/scenarios">
+            <Button>Voltar aos Cenários</Button>
+          </Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-zinc-900 flex flex-col">
-      <header className="bg-zinc-800 border-b border-zinc-700 sticky top-0 z-10">
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
+      <header className="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-10">
         <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <Link
@@ -312,7 +323,7 @@ export default function PracticePage() {
             <div className="min-w-0 flex-1">
               <h1 className="font-semibold text-sm sm:text-base text-white truncate">{scenario.title}</h1>
               <p className="text-xs text-zinc-400 truncate">
-                {scenario.character} • {scenario.language}
+                {scenario.character} • {language.name}
               </p>
             </div>
           </div>
@@ -335,7 +346,7 @@ export default function PracticePage() {
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Pronto para começar?</h2>
                 <p className="text-sm sm:text-base text-zinc-400 mb-4">
-                  Esta conversa custará 1 crédito. Você terá uma sessão completa para praticar {scenario.language}.
+                  Esta conversa custará 1 crédito. Você praticará {language.name} no cenário {scenario.title}.
                 </p>
               </div>
               <Button 
@@ -363,7 +374,11 @@ export default function PracticePage() {
         ) : (
           <>
             <div 
-              className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 space-y-3 bg-zinc-900"
+              className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 space-y-3 bg-zinc-950"
+              style={{ 
+                backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(39 39 42 / 0.4) 1px, transparent 0)',
+                backgroundSize: '20px 20px'
+              }}
             >
               {messages.map((message, index) => (
                 <div
@@ -371,14 +386,14 @@ export default function PracticePage() {
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] sm:max-w-[75%] rounded-lg shadow-md ${
+                    className={`max-w-[85%] sm:max-w-[75%] rounded-lg shadow-lg ${
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-br-none'
-                        : 'bg-zinc-800 text-zinc-100 rounded-bl-none'
+                        ? 'bg-primary text-primary-foreground rounded-br-sm'
+                        : 'bg-zinc-900 text-zinc-100 rounded-bl-sm'
                     }`}
                   >
                     {message.role === 'assistant' && (
-                      <div className="flex items-center gap-2 px-3 pt-2 pb-1 border-b border-zinc-700/50">
+                      <div className="flex items-center gap-2 px-3 pt-2 pb-1 border-b border-zinc-800">
                         <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">
                             {scenario.character[0]}
@@ -391,24 +406,21 @@ export default function PracticePage() {
                       <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap break-words">
                         {message.content}
                       </p>
-                      <div className="flex items-center justify-between mt-1">
-                        <button
-                          className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1"
-                          onClick={() => {
-                            const utterance = new SpeechSynthesisUtterance(message.content)
-                            utterance.lang =
-                              scenario.language === 'Francês'
-                                ? 'fr-FR'
-                                : scenario.language === 'Espanhol'
-                                  ? 'es-ES'
-                                  : 'en-US'
-                            speechSynthesis.speak(utterance)
-                          }}
-                        >
-                          <Volume2 className="h-3 w-3" />
-                          Ouvir
-                        </button>
-                        <span className="text-[10px] text-zinc-500">
+                      <div className="flex items-center justify-between mt-1.5 gap-2">
+                        {message.role === 'assistant' && (
+                          <button
+                            className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1"
+                            onClick={() => {
+                              const utterance = new SpeechSynthesisUtterance(message.content)
+                              utterance.lang = language.code
+                              speechSynthesis.speak(utterance)
+                            }}
+                          >
+                            <Volume2 className="h-3 w-3" />
+                            Ouvir
+                          </button>
+                        )}
+                        <span className="text-[10px] text-zinc-500 ml-auto">
                           {message.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -419,7 +431,7 @@ export default function PracticePage() {
 
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-zinc-800 rounded-lg rounded-bl-none px-4 py-3 shadow-md">
+                  <div className="bg-zinc-900 rounded-lg rounded-bl-sm px-4 py-3 shadow-lg">
                     <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
                   </div>
                 </div>
@@ -428,30 +440,23 @@ export default function PracticePage() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="bg-zinc-800 border-t border-zinc-700 px-3 py-3 sm:px-4 sm:py-4">
+            <div className="bg-zinc-900 border-t border-zinc-800 px-3 py-3 sm:px-4 sm:py-4">
               {isRecording && (
-                <div className="mb-3 bg-zinc-900 rounded-lg px-4 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                    <span className="text-sm text-red-400 font-medium">Gravando áudio...</span>
-                  </div>
-                  <button
-                    onClick={toggleRecording}
-                    className="text-zinc-400 hover:text-zinc-200"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+                <div className="mb-3 bg-red-500/10 rounded-xl px-4 py-3 flex items-center gap-3 border border-red-500/20">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                  <span className="text-sm text-red-400 font-medium flex-1">Gravando áudio...</span>
+                  <span className="text-xs text-red-400/70">Fale agora</span>
                 </div>
               )}
               
               <div className="flex gap-2 items-end">
-                <div className="flex-1 bg-zinc-900 rounded-full px-4 py-2 flex items-center gap-2">
+                <div className="flex-1 bg-zinc-800 rounded-full px-4 py-2.5 flex items-center gap-2 border border-zinc-700">
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyPress}
-                    placeholder={`Mensagem em ${scenario.language}...`}
+                    placeholder={`Mensagem em ${language.name}...`}
                     className="flex-1 bg-transparent text-sm sm:text-base text-zinc-100 placeholder:text-zinc-500 outline-none"
                     disabled={isLoading || isRecording}
                   />
@@ -460,10 +465,10 @@ export default function PracticePage() {
                     <button
                       onClick={toggleRecording}
                       disabled={isLoading}
-                      className={`flex-shrink-0 transition-colors ${
+                      className={`flex-shrink-0 transition-all ${
                         isRecording 
-                          ? 'text-red-500' 
-                          : 'text-zinc-400 hover:text-zinc-200'
+                          ? 'text-red-500 scale-110' 
+                          : 'text-primary hover:text-primary/80'
                       }`}
                     >
                       <Mic className="h-5 w-5" />
