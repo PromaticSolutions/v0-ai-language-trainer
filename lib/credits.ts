@@ -1,46 +1,136 @@
-'use server'
+"use server"
 
-import { cookies } from 'next/headers'
+import { createClient } from "@/lib/supabase/server"
 
-const CREDITS_COOKIE = 'fluency_credits'
+export async function getCredits(): Promise<{ credits: number; message_count: number }> {
+  const supabase = await createClient()
 
-export async function getCredits(): Promise<number> {
-  const cookieStore = await cookies()
-  const credits = cookieStore.get(CREDITS_COOKIE)
-  return credits ? parseInt(credits.value, 10) : 3 // 3 free credits to start
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { credits: 0, message_count: 0 }
+  }
+
+  const { data: userProfile } = await supabase.from("users").select("credits, message_count").eq("id", user.id).single()
+
+  return {
+    credits: userProfile?.credits || 0,
+    message_count: userProfile?.message_count || 0,
+  }
 }
 
 export async function addCredits(amount: number): Promise<number> {
-  const cookieStore = await cookies()
-  const currentCredits = await getCredits()
-  const newCredits = currentCredits + amount
-  
-  cookieStore.set(CREDITS_COOKIE, newCredits.toString(), {
-    maxAge: 60 * 60 * 24 * 365, // 1 year
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-  })
-  
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("User not authenticated")
+  }
+
+  const { credits } = await getCredits()
+  const newCredits = credits + amount
+
+  await supabase.from("users").update({ credits: newCredits }).eq("id", user.id)
+
   return newCredits
 }
 
+export async function trackMessage(): Promise<{
+  success: boolean
+  remainingCredits: number
+  messageCount: number
+  creditDeducted: boolean
+}> {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, remainingCredits: 0, messageCount: 0, creditDeducted: false }
+  }
+
+  const { data: userProfile } = await supabase.from("users").select("credits, message_count").eq("id", user.id).single()
+
+  if (!userProfile) {
+    return { success: false, remainingCredits: 0, messageCount: 0, creditDeducted: false }
+  }
+
+  const currentCredits = userProfile.credits || 0
+  const currentMessageCount = userProfile.message_count || 0
+
+  // Check if user has credits
+  if (currentCredits <= 0 && currentMessageCount >= 20) {
+    return {
+      success: false,
+      remainingCredits: 0,
+      messageCount: currentMessageCount,
+      creditDeducted: false,
+    }
+  }
+
+  const newMessageCount = currentMessageCount + 1
+  let newCredits = currentCredits
+  let creditDeducted = false
+
+  // If reached 20 messages, deduct a credit and reset counter
+  if (newMessageCount >= 20 && currentCredits > 0) {
+    newCredits = currentCredits - 1
+    creditDeducted = true
+
+    await supabase
+      .from("users")
+      .update({
+        credits: newCredits,
+        message_count: 0, // Reset message count after deducting credit
+      })
+      .eq("id", user.id)
+
+    return {
+      success: true,
+      remainingCredits: newCredits,
+      messageCount: 0,
+      creditDeducted: true,
+    }
+  } else {
+    // Just increment message count
+    await supabase.from("users").update({ message_count: newMessageCount }).eq("id", user.id)
+
+    return {
+      success: true,
+      remainingCredits: newCredits,
+      messageCount: newMessageCount,
+      creditDeducted: false,
+    }
+  }
+}
+
 export async function deductCredit(): Promise<{ success: boolean; remainingCredits: number }> {
-  const currentCredits = await getCredits()
-  
-  if (currentCredits <= 0) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
     return { success: false, remainingCredits: 0 }
   }
-  
-  const cookieStore = await cookies()
-  const newCredits = currentCredits - 1
-  
-  cookieStore.set(CREDITS_COOKIE, newCredits.toString(), {
-    maxAge: 60 * 60 * 24 * 365,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-  })
-  
+
+  const { credits } = await getCredits()
+
+  if (credits <= 0) {
+    return { success: false, remainingCredits: 0 }
+  }
+
+  const newCredits = credits - 1
+
+  await supabase.from("users").update({ credits: newCredits }).eq("id", user.id)
+
   return { success: true, remainingCredits: newCredits }
 }

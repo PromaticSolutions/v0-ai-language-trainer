@@ -1,6 +1,5 @@
 "use client"
-
-import type React from "react"
+import type { KeyboardEvent } from "react"
 
 import { useState, useRef, useEffect } from "react"
 import { ArrowLeft, Mic, Volume2, Loader2, Send, Sparkles } from "lucide-react"
@@ -9,35 +8,45 @@ import { Button } from "@/components/ui/button"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 
 const scenarioData: Record<string, any> = {
-  "coffee-shop": {
-    title: "Cafeteria",
+  "meeting-friend": {
+    title: "Conhecendo Alguém",
     character: "Alex",
-    characterRole: "Barista",
-  },
-  "job-interview": {
-    title: "Entrevista de Emprego",
-    character: "Jordan",
-    characterRole: "Recrutador",
-  },
-  "hotel-checkin": {
-    title: "Check-in no Hotel",
-    character: "Sam",
-    characterRole: "Recepcionista",
+    characterRole: "Novo amigo/amiga",
   },
   restaurant: {
     title: "Restaurante",
     character: "Taylor",
     characterRole: "Garçom/Garçonete",
   },
-  "doctor-appointment": {
-    title: "Consulta Médica",
-    character: "Dr. Morgan",
-    characterRole: "Médico",
+  "job-interview": {
+    title: "Entrevista de Emprego",
+    character: "Jordan",
+    characterRole: "Recrutador",
   },
-  "business-meeting": {
-    title: "Reunião de Negócios",
+  airport: {
+    title: "Aeroporto",
+    character: "Sam",
+    characterRole: "Atendente do aeroporto",
+  },
+  supermarket: {
+    title: "Mercado",
     character: "Chris",
-    characterRole: "Executivo",
+    characterRole: "Funcionário do mercado",
+  },
+  "clothing-store": {
+    title: "Loja de Roupa",
+    character: "Morgan",
+    characterRole: "Vendedor(a)",
+  },
+  pharmacy: {
+    title: "Farmácia",
+    character: "Dr. Lee",
+    characterRole: "Farmacêutico",
+  },
+  office: {
+    title: "Escritório de Empresa",
+    character: "Pat",
+    characterRole: "Colega de trabalho",
   },
 }
 
@@ -45,11 +54,6 @@ const languageConfig: Record<string, any> = {
   english: { name: "Inglês", code: "en-US", nativeName: "English" },
   spanish: { name: "Espanhol", code: "es-ES", nativeName: "Español" },
   french: { name: "Francês", code: "fr-FR", nativeName: "Français" },
-  german: { name: "Alemão", code: "de-DE", nativeName: "Deutsch" },
-  italian: { name: "Italiano", code: "it-IT", nativeName: "Italiano" },
-  portuguese: { name: "Português", code: "pt-PT", nativeName: "Português" },
-  japanese: { name: "Japonês", code: "ja-JP", nativeName: "日本語" },
-  mandarin: { name: "Mandarim", code: "zh-CN", nativeName: "中文" },
 }
 
 interface Message {
@@ -76,12 +80,7 @@ IMPORTANT INSTRUCTIONS:
 - In the feedback, comment on: pronunciation hints, grammar corrections if needed, vocabulary suggestions, and encouragement
 - Keep feedback brief (2-3 sentences) and positive
 - If they make mistakes, correct them gently in the feedback section
-- At the end of conversation (if they say goodbye), provide a performance summary in Portuguese
-
-Example response format:
-"[Response in ${language?.nativeName}]
-
-💡 Feedback: [Brief feedback in Portuguese about their language use]"`
+- At the end of conversation (if they say goodbye), provide a performance summary in Portuguese`
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
@@ -93,18 +92,21 @@ Example response format:
   const [speechSupported, setSpeechSupported] = useState(false)
   const recognitionRef = useRef<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [messageCountInCredit, setMessageCountInCredit] = useState(0) // Track messages in current credit
+  const [showCreditWarning, setShowCreditWarning] = useState(false) // Warning when approaching limit
 
   useEffect(() => {
-    async function fetchCredits() {
+    async function fetchCreditsAndMessages() {
       try {
         const response = await fetch("/api/credits")
         const data = await response.json()
         setUserCredits(data.credits)
+        setMessageCountInCredit(data.message_count || 0) // Get message count
       } catch (error) {
         console.error("[v0] Error fetching credits:", error)
       }
     }
-    fetchCredits()
+    fetchCreditsAndMessages()
   }, [])
 
   useEffect(() => {
@@ -193,6 +195,11 @@ Example response format:
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return
 
+    if (messageCountInCredit >= 20) {
+      setShowCreditWarning(true)
+      return
+    }
+
     const userMessage: Message = {
       role: "user",
       content: input,
@@ -227,17 +234,19 @@ Example response format:
       }
 
       setMessages((prev) => [...prev, assistantMessage])
+
+      setMessageCountInCredit((prev) => {
+        const newCount = prev + 1
+        // Show warning at 18 messages (2 messages left)
+        if (newCount >= 18) {
+          setShowCreditWarning(true)
+        }
+        return newCount
+      })
     } catch (error) {
       console.error("[v0] Error sending message:", error)
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
     }
   }
 
@@ -256,23 +265,15 @@ Example response format:
   const startConversation = async () => {
     if (conversationStarted) return
 
+    if (userCredits === 0) {
+      setCreditError(true)
+      return
+    }
+
     setIsLoading(true)
+    setConversationStarted(true)
+
     try {
-      const creditResponse = await fetch("/api/credits/deduct", {
-        method: "POST",
-      })
-
-      const creditData = await creditResponse.json()
-
-      if (!creditData.success) {
-        setCreditError(true)
-        setIsLoading(false)
-        return
-      }
-
-      setUserCredits(creditData.remainingCredits)
-      setConversationStarted(true)
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -295,6 +296,12 @@ Example response format:
       console.error("[v0] Error starting conversation:", error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      sendMessage()
     }
   }
 
@@ -327,9 +334,12 @@ Example response format:
             </div>
           </div>
           {userCredits !== null && (
-            <div className="px-2 sm:px-3 py-1 rounded-full bg-primary/20 border border-primary/30 flex items-center gap-1.5 flex-shrink-0">
-              <Sparkles className="h-3 w-3 text-primary" />
-              <span className="text-xs font-medium text-primary">{userCredits}</span>
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-zinc-400">{messageCountInCredit}/20</div>
+              <div className="px-2 sm:px-3 py-1 rounded-full bg-primary/20 border border-primary/30 flex items-center gap-1.5 flex-shrink-0">
+                <Sparkles className="h-3 w-3 text-primary" />
+                <span className="text-xs font-medium text-primary">{userCredits}</span>
+              </div>
             </div>
           )}
         </div>
@@ -345,7 +355,7 @@ Example response format:
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold mb-2 text-white">Pronto para começar?</h2>
                 <p className="text-sm sm:text-base text-zinc-400 mb-4">
-                  Esta conversa custará 1 crédito. Você praticará {language.name} no cenário {scenario.title}.
+                  Cada crédito permite 20 mensagens. Você praticará {language.name} no cenário {scenario.title}.
                 </p>
               </div>
               <Button
@@ -363,11 +373,37 @@ Example response format:
                   "Iniciar Conversa"
                 )}
               </Button>
-              {userCredits === 0 && <p className="text-sm text-destructive">Você precisa de créditos para começar</p>}
+              {userCredits === 0 && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <p className="text-sm text-destructive font-medium mb-2">Sem créditos disponíveis</p>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/buy-credits">Comprar Créditos</Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         ) : (
           <>
+            {showCreditWarning && messageCountInCredit >= 18 && messageCountInCredit < 20 && (
+              <div className="bg-orange-500/10 border-b border-orange-500/20 px-4 py-3">
+                <p className="text-sm text-orange-400 text-center">
+                  Você tem {20 - messageCountInCredit} mensagem(ns) restantes neste crédito
+                </p>
+              </div>
+            )}
+
+            {messageCountInCredit >= 20 && (
+              <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-3">
+                <p className="text-sm text-destructive text-center font-medium">
+                  Limite de 20 mensagens atingido!
+                  <Link href="/buy-credits" className="underline ml-1">
+                    Compre mais créditos
+                  </Link>
+                </p>
+              </div>
+            )}
+
             <div
               className="flex-1 overflow-y-auto px-3 py-4 sm:px-6 space-y-3 bg-zinc-950"
               style={{
@@ -448,10 +484,10 @@ Example response format:
                     onKeyDown={handleKeyPress}
                     placeholder={`Mensagem em ${language.name}...`}
                     className="flex-1 bg-transparent text-sm sm:text-base text-zinc-100 placeholder:text-zinc-500 outline-none"
-                    disabled={isLoading || isRecording}
+                    disabled={isLoading || isRecording || messageCountInCredit >= 20}
                   />
 
-                  {speechSupported && !input.trim() && (
+                  {speechSupported && !input.trim() && messageCountInCredit < 20 && (
                     <button
                       onClick={toggleRecording}
                       disabled={isLoading}
@@ -468,7 +504,7 @@ Example response format:
                   id="send-message-btn"
                   size="icon"
                   onClick={sendMessage}
-                  disabled={!input.trim() || isLoading || isRecording}
+                  disabled={!input.trim() || isLoading || isRecording || messageCountInCredit >= 20}
                   className="h-11 w-11 rounded-full flex-shrink-0"
                 >
                   {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}

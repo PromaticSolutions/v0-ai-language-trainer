@@ -36,17 +36,42 @@ const scenarios: Record<string, any> = {
     description: "Conduza reuniões profissionais",
     image: "/modern-conference-room.png",
   },
+  "meeting-friend": {
+    title: "Conhecendo Alguém",
+    description: "Pratique apresentações e conversas casuais",
+    image: "/two-friends-meeting-and-talking-casually.jpg",
+  },
+  airport: {
+    title: "Aeroporto",
+    description: "Navegue por aeroportos internacionais",
+    image: "/modern-airport-terminal.jpg",
+  },
+  supermarket: {
+    title: "Mercado",
+    description: "Compre e pergunte sobre produtos",
+    image: "/supermarket-interior.png",
+  },
+  "clothing-store": {
+    title: "Loja de Roupa",
+    description: "Experimente e compre roupas",
+    image: "/clothing-store-interior.png",
+  },
+  pharmacy: {
+    title: "Farmácia",
+    description: "Compre medicamentos e peça orientações",
+    image: "/modern-medical-office.png",
+  },
+  office: {
+    title: "Escritório de Empresa",
+    description: "Interações profissionais no ambiente corporativo",
+    image: "/modern-conference-room.png",
+  },
 }
 
 const languages = [
   { id: "english", name: "Inglês", flag: "🇺🇸", code: "en-US" },
   { id: "spanish", name: "Espanhol", flag: "🇪🇸", code: "es-ES" },
   { id: "french", name: "Francês", flag: "🇫🇷", code: "fr-FR" },
-  { id: "german", name: "Alemão", flag: "🇩🇪", code: "de-DE" },
-  { id: "italian", name: "Italiano", flag: "🇮🇹", code: "it-IT" },
-  { id: "portuguese", name: "Português", flag: "🇵🇹", code: "pt-PT" },
-  { id: "japanese", name: "Japonês", flag: "🇯🇵", code: "ja-JP" },
-  { id: "mandarin", name: "Mandarim", flag: "🇨🇳", code: "zh-CN" },
 ]
 
 export default async function SelectLanguagePage({ params }: { params: { scenarioId: string } }) {
@@ -113,7 +138,7 @@ export default async function SelectLanguagePage({ params }: { params: { scenari
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
           {languages.map((language) => (
             <Link key={language.id} href={`/practice/${params.scenarioId}?language=${language.id}`}>
               <Card className="hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer group h-full">

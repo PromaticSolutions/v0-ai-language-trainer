@@ -9,36 +9,76 @@ import { useRouter } from "next/navigation"
 
 const scenarios = [
   {
-    id: "cafe-paris",
-    name: "Café em Paris",
-    language: "Francês",
+    id: "meeting-friend",
+    name: "Conhecendo Alguém",
+    language: "Multi-idioma",
     difficulty: "Iniciante",
-    image: "/parisian-cafe-interior.jpg",
-    icon: "☕",
+    image: "/two-friends-meeting-and-talking-casually-in-a-cafe.jpg",
+    icon: "👋",
+    free: true, // Free plan access
+  },
+  {
+    id: "restaurant",
+    name: "Restaurante",
+    language: "Multi-idioma",
+    difficulty: "Iniciante",
+    image: "/traditional-japanese-restaurant.jpg",
+    icon: "🍽️",
+    free: true, // Free plan access
   },
   {
     id: "job-interview",
     name: "Entrevista de Emprego",
-    language: "Inglês",
+    language: "Multi-idioma",
     difficulty: "Avançado",
     image: "/professional-office-interview.jpg",
     icon: "💼",
+    free: false,
   },
   {
-    id: "hotel-checkin",
-    name: "Check-in no Hotel",
-    language: "Inglês",
+    id: "airport",
+    name: "Aeroporto",
+    language: "Multi-idioma",
     difficulty: "Intermediário",
-    image: "/hotel-lobby-reception.jpg",
-    icon: "🏨",
+    image: "/modern-airport-terminal-with-passengers.jpg",
+    icon: "✈️",
+    free: false,
   },
   {
-    id: "restaurant-reservation",
-    name: "Reserva no Restaurante",
-    language: "Espanhol",
+    id: "supermarket",
+    name: "Mercado",
+    language: "Multi-idioma",
+    difficulty: "Iniciante",
+    image: "/supermarket-interior-with-shopping-aisles.jpg",
+    icon: "🛒",
+    free: false,
+  },
+  {
+    id: "clothing-store",
+    name: "Loja de Roupa",
+    language: "Multi-idioma",
     difficulty: "Intermediário",
-    image: "/traditional-japanese-restaurant.jpg",
-    icon: "🍽️",
+    image: "/modern-clothing-store-interior.jpg",
+    icon: "👕",
+    free: false,
+  },
+  {
+    id: "pharmacy",
+    name: "Farmácia",
+    language: "Multi-idioma",
+    difficulty: "Intermediário",
+    image: "/modern-medical-office.png",
+    icon: "💊",
+    free: false,
+  },
+  {
+    id: "office",
+    name: "Escritório de Empresa",
+    language: "Multi-idioma",
+    difficulty: "Avançado",
+    image: "/modern-conference-room.png",
+    icon: "🏢",
+    free: false,
   },
 ]
 
@@ -57,6 +97,8 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
     totalMinutes: conversations.reduce((acc, conv) => acc + (conv.duration || 0), 0) / 60,
     credits: user?.credits || 0,
   }
+
+  const isPaidUser = stats.credits > 3
 
   return (
     <div className="min-h-screen bg-background">
@@ -159,32 +201,56 @@ export function DashboardContent({ user, conversations }: DashboardContentProps)
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {scenarios.map((scenario) => (
-                  <Card
-                    key={scenario.id}
-                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
-                    onClick={() => router.push(`/select-language/${scenario.id}`)}
-                  >
-                    <div className="aspect-video relative overflow-hidden bg-muted">
-                      <img
-                        src={scenario.image || "/placeholder.svg"}
-                        alt={scenario.name}
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-full w-10 h-10 flex items-center justify-center text-xl">
-                        {scenario.icon}
+                {scenarios.map((scenario) => {
+                  const isLocked = !scenario.free && !isPaidUser
+
+                  return (
+                    <Card
+                      key={scenario.id}
+                      className={`overflow-hidden hover:shadow-lg transition-shadow ${
+                        isLocked ? "opacity-60" : "cursor-pointer group"
+                      }`}
+                      onClick={() => !isLocked && router.push(`/select-language/${scenario.id}`)}
+                    >
+                      <div className="aspect-video relative overflow-hidden bg-muted">
+                        <img
+                          src={scenario.image || "/placeholder.svg"}
+                          alt={scenario.name}
+                          className={`object-cover w-full h-full ${!isLocked && "group-hover:scale-105"} transition-transform duration-300`}
+                        />
+                        <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-full w-10 h-10 flex items-center justify-center text-xl">
+                          {scenario.icon}
+                        </div>
+                        {isLocked && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-4xl mb-2">🔒</div>
+                              <p className="text-xs text-white font-medium">Premium</p>
+                            </div>
+                          </div>
+                        )}
+                        {scenario.free && (
+                          <div className="absolute top-2 left-2">
+                            <span className="px-2 py-1 bg-green-500 text-white text-xs font-bold rounded">GRÁTIS</span>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <CardHeader className="space-y-2">
-                      <CardTitle className="text-lg">{scenario.name}</CardTitle>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">{scenario.language}</span>
-                        <span className="text-muted-foreground">•</span>
-                        <span className="text-primary">{scenario.difficulty}</span>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
+                      <CardHeader className="space-y-2">
+                        <CardTitle className="text-lg">{scenario.name}</CardTitle>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-muted-foreground">{scenario.language}</span>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="text-primary">{scenario.difficulty}</span>
+                        </div>
+                        {isLocked && (
+                          <Button size="sm" variant="outline" asChild className="w-full mt-2 bg-transparent">
+                            <Link href="/buy-credits">Desbloquear</Link>
+                          </Button>
+                        )}
+                      </CardHeader>
+                    </Card>
+                  )
+                })}
               </div>
             </div>
           )}
