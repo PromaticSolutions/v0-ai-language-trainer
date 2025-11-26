@@ -1,35 +1,37 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Languages, Loader2, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Languages, Loader2, ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState("")
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setError("")
 
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem')
+      setError("As senhas não coincidem")
       return
     }
 
     if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres')
+      setError("A senha deve ter no mínimo 6 caracteres")
       return
     }
 
@@ -37,24 +39,34 @@ export default function RegisterPage() {
 
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-          data: {
-            name: name,
-          }
+
+      const { data, error: signUpError } = (await Promise.race([
+        supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
+            data: { name },
+          },
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Registro timeout - tente novamente")), 10000)),
+      ])) as any
+
+      if (signUpError) {
+        if (signUpError.message.includes("already registered")) {
+          throw new Error("Este email já está cadastrado")
         }
-      })
-      
-      if (error) throw error
-      
-      router.push('/dashboard')
-      router.refresh()
+        throw signUpError
+      }
+
+      if (!data?.user) {
+        throw new Error("Erro ao criar conta - tente novamente")
+      }
+
+      window.location.href = "/dashboard"
     } catch (error: any) {
-      setError(error.message || 'Erro ao criar conta')
-    } finally {
+      console.error("[v0] Register error:", error)
+      setError(error.message || "Erro ao criar conta - verifique sua conexão")
       setIsLoading(false)
     }
   }
@@ -86,11 +98,7 @@ export default function RegisterPage() {
           </CardHeader>
           <form onSubmit={handleRegister}>
             <CardContent className="space-y-6">
-              {error && (
-                <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-                  {error}
-                </div>
-              )}
+              {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
                 <Input
@@ -100,6 +108,7 @@ export default function RegisterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -111,6 +120,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -122,6 +132,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -133,6 +144,7 @@ export default function RegisterPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </CardContent>
@@ -144,11 +156,11 @@ export default function RegisterPage() {
                     Criando conta...
                   </>
                 ) : (
-                  'Criar Conta'
+                  "Criar Conta"
                 )}
               </Button>
               <p className="text-sm text-muted-foreground text-center">
-                Já tem uma conta?{' '}
+                Já tem uma conta?{" "}
                 <Link href="/login" className="text-primary hover:underline">
                   Fazer login
                 </Link>

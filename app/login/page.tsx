@@ -1,41 +1,52 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Languages, Loader2, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Languages, Loader2, ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState("")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setError("")
     setIsLoading(true)
 
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      
-      if (error) throw error
-      
-      router.push('/dashboard')
-      router.refresh()
+
+      const { data, error: signInError } = (await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Login timeout - tente novamente")), 10000)),
+      ])) as any
+
+      if (signInError) {
+        if (signInError.message.includes("Invalid login credentials")) {
+          throw new Error("Email ou senha incorretos")
+        }
+        throw signInError
+      }
+
+      if (!data?.user) {
+        throw new Error("Erro ao fazer login - tente novamente")
+      }
+
+      window.location.href = "/dashboard"
     } catch (error: any) {
-      setError(error.message || 'Erro ao fazer login')
-    } finally {
+      console.error("[v0] Login error:", error)
+      setError(error.message || "Erro ao fazer login - verifique sua conexão")
       setIsLoading(false)
     }
   }
@@ -67,11 +78,7 @@ export default function LoginPage() {
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-6">
-              {error && (
-                <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-                  {error}
-                </div>
-              )}
+              {error && <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">{error}</div>}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -81,6 +88,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -92,6 +100,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </CardContent>
@@ -103,11 +112,11 @@ export default function LoginPage() {
                     Entrando...
                   </>
                 ) : (
-                  'Entrar'
+                  "Entrar"
                 )}
               </Button>
               <p className="text-sm text-muted-foreground text-center">
-                Não tem uma conta?{' '}
+                Não tem uma conta?{" "}
                 <Link href="/register" className="text-primary hover:underline">
                   Criar conta
                 </Link>

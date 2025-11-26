@@ -175,7 +175,20 @@ IMPORTANT INSTRUCTIONS:
         body: JSON.stringify({ messages: conversationHistory }),
       })
 
-      if (!response.ok) throw new Error("Failed to send message")
+      if (!response.ok) {
+        const errorData = await response.json()
+        if (errorData.errorType === "ai_gateway_config") {
+          // Show AI Gateway configuration error
+          const errorMessage: Message = {
+            role: "assistant",
+            content: `⚠️ ${errorData.error}`,
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, errorMessage])
+          return
+        }
+        throw new Error(errorData.error || "Failed to send message")
+      }
 
       const data = await response.json()
       const assistantMessage: Message = {
@@ -187,6 +200,12 @@ IMPORTANT INSTRUCTIONS:
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
       console.error("[v0] Error sending message:", error)
+      const errorMessage: Message = {
+        role: "assistant",
+        content: "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -224,7 +243,20 @@ IMPORTANT INSTRUCTIONS:
         body: JSON.stringify({ messages: conversationHistory }),
       })
 
-      if (!response.ok) throw new Error("Failed to send message")
+      if (!response.ok) {
+        const errorData = await response.json()
+        if (errorData.errorType === "ai_gateway_config") {
+          // Show AI Gateway configuration error
+          const errorMessage: Message = {
+            role: "assistant",
+            content: `⚠️ ${errorData.error}`,
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, errorMessage])
+          return
+        }
+        throw new Error(errorData.error || "Failed to send message")
+      }
 
       const data = await response.json()
       const assistantMessage: Message = {
@@ -245,6 +277,12 @@ IMPORTANT INSTRUCTIONS:
       })
     } catch (error) {
       console.error("[v0] Error sending message:", error)
+      const errorMessage: Message = {
+        role: "assistant",
+        content: "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -282,7 +320,21 @@ IMPORTANT INSTRUCTIONS:
         }),
       })
 
-      if (!response.ok) throw new Error("Failed to start conversation")
+      if (!response.ok) {
+        const errorData = await response.json()
+        if (errorData.errorType === "ai_gateway_config") {
+          // Show AI Gateway configuration error
+          setMessages([
+            {
+              role: "assistant",
+              content: `⚠️ ${errorData.error}`,
+              timestamp: new Date(),
+            },
+          ])
+          return
+        }
+        throw new Error(errorData.error || "Failed to start conversation")
+      }
 
       const data = await response.json()
       setMessages([
@@ -294,6 +346,14 @@ IMPORTANT INSTRUCTIONS:
       ])
     } catch (error) {
       console.error("[v0] Error starting conversation:", error)
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Desculpe, não foi possível iniciar a conversa. Verifique se o AI Gateway está configurado corretamente.",
+          timestamp: new Date(),
+        },
+      ])
     } finally {
       setIsLoading(false)
     }

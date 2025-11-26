@@ -6,55 +6,35 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
 const scenarios: Record<string, any> = {
-  "coffee-shop": {
-    title: "Cafeteria",
-    description: "Pratique pedindo seu café favorito",
-    image: "/parisian-cafe-interior.jpg",
-  },
-  "job-interview": {
-    title: "Entrevista de Emprego",
-    description: "Prepare-se para entrevistas profissionais",
-    image: "/professional-office-interview.jpg",
-  },
-  "hotel-checkin": {
-    title: "Check-in no Hotel",
-    description: "Aprenda a fazer check-in",
-    image: "/hotel-lobby-reception.jpg",
+  "meeting-friend": {
+    title: "Conhecendo Alguém",
+    description: "Pratique apresentações e conversas casuais",
+    image: "/two-friends-meeting-and-talking-casually.jpg",
   },
   restaurant: {
     title: "Restaurante",
     description: "Pratique fazer pedidos",
     image: "/traditional-japanese-restaurant.jpg",
   },
-  "doctor-appointment": {
-    title: "Consulta Médica",
-    description: "Descreva sintomas",
-    image: "/modern-medical-office.png",
-  },
-  "business-meeting": {
-    title: "Reunião de Negócios",
-    description: "Conduza reuniões profissionais",
-    image: "/modern-conference-room.png",
-  },
-  "meeting-friend": {
-    title: "Conhecendo Alguém",
-    description: "Pratique apresentações e conversas casuais",
-    image: "/two-friends-meeting-and-talking-casually.jpg",
+  "job-interview": {
+    title: "Entrevista de Emprego",
+    description: "Prepare-se para entrevistas profissionais",
+    image: "/professional-office-interview.jpg",
   },
   airport: {
     title: "Aeroporto",
     description: "Navegue por aeroportos internacionais",
-    image: "/modern-airport-terminal.jpg",
+    image: "/modern-airport-terminal-with-passengers.jpg",
   },
   supermarket: {
     title: "Mercado",
     description: "Compre e pergunte sobre produtos",
-    image: "/supermarket-interior.png",
+    image: "/supermarket-interior-with-shopping-aisles.jpg",
   },
   "clothing-store": {
     title: "Loja de Roupa",
     description: "Experimente e compre roupas",
-    image: "/clothing-store-interior.png",
+    image: "/modern-clothing-store-interior.jpg",
   },
   pharmacy: {
     title: "Farmácia",
@@ -91,7 +71,7 @@ export default async function SelectLanguagePage({ params }: { params: { scenari
   const scenario = scenarios[params.scenarioId]
 
   if (!scenario) {
-    redirect("/scenarios")
+    redirect("/dashboard")
   }
 
   return (
@@ -118,38 +98,40 @@ export default async function SelectLanguagePage({ params }: { params: { scenari
 
       <main className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         <div className="mb-8 md:mb-12">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border border-border/40">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border border-border/40 shrink-0">
               <img
                 src={scenario.image || "/placeholder.svg"}
                 alt={scenario.title}
                 className="w-full h-full object-cover"
               />
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl md:text-4xl font-bold mb-1 text-balance">{scenario.title}</h1>
               <p className="text-sm md:text-base text-muted-foreground">{scenario.description}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Globe className="h-5 w-5" />
+            <Globe className="h-5 w-5 shrink-0" />
             <p className="text-base md:text-lg">Escolha o idioma que deseja praticar</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto">
           {languages.map((language) => (
             <Link key={language.id} href={`/practice/${params.scenarioId}?language=${language.id}`}>
               <Card className="hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer group h-full">
-                <CardHeader className="text-center">
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">{language.flag}</div>
-                  <CardTitle className="text-xl">{language.name}</CardTitle>
+                <CardHeader className="text-center pb-3">
+                  <div className="text-4xl md:text-5xl mb-3 group-hover:scale-110 transition-transform">
+                    {language.flag}
+                  </div>
+                  <CardTitle className="text-lg md:text-xl">{language.name}</CardTitle>
                   <CardDescription className="text-xs">Código: {language.code}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <Button className="w-full" variant="secondary" size="sm">
-                    Praticar em {language.name}
+                    Praticar
                   </Button>
                 </CardContent>
               </Card>

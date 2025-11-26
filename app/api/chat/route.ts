@@ -27,8 +27,20 @@ export async function POST(req: Request) {
       messageCount: trackResult.messageCount,
       creditDeducted: trackResult.creditDeducted,
     })
-  } catch (error) {
-    console.error("[v0] Error in chat API:", error)
+  } catch (error: any) {
+    console.error("[v0] Error in chat API:", error?.message || error)
+
+    if (error?.message?.includes("credit card") || error?.message?.includes("customer_verification_required")) {
+      return Response.json(
+        {
+          error:
+            "AI Gateway requer configuração. Por favor, adicione um cartão de crédito em vercel.com/account/billing para desbloquear seus créditos gratuitos.",
+          errorType: "ai_gateway_config",
+        },
+        { status: 402 },
+      )
+    }
+
     return Response.json({ error: "Failed to generate response" }, { status: 500 })
   }
 }
